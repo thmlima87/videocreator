@@ -1,0 +1,10 @@
+ibm_watson
+nltk
+Algorithmia
+yaml
+requests
+bs4
+logging
+
+  >>> import nltk
+  >>> nltk.download('punkt')
