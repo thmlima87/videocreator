@@ -215,10 +215,11 @@ def get_keywords_from_sentence(sentence):
 
 
 
-def load(path):
+def load():
     logging.info("Loading content...")
+    path = 'content/content.json'
     try:
-        os.chdir("./")
+        #os.chdir("./")
         # carrega arquivo
         with open(path, encoding="utf-8") as f:
             content = json.load(f)
@@ -232,9 +233,7 @@ def save(content):
     logging.info("Saving content...")
     print("Saving content...", end='\n\n')
     # creating name folder
-    name_folder = content['search_term'].lower().replace(" ", "_")
-
-    path = "content/{}".format(name_folder)
+    path = "content"
     # create directory
     os.makedirs(os.path.dirname("{}/content.json".format(path)), exist_ok=True)
 

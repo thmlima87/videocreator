@@ -46,6 +46,7 @@ def main():
         # Buscando conteúdo no Wikipedia
         wikipedia = content.get_wikipedia_content(video_content['search_term'], "pt")
         video_content['original_content'] = wikipedia['extract']
+        video_content['wikipedia_images'] = wikipedia['images'] if 'images' in wikipedia else []
         
         '''
         if 'images' in wikipedia:
