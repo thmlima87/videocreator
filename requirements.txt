@@ -5,6 +5,7 @@ yaml
 requests
 bs4
 logging
+moviepy=1.0.3
 
   >>> import nltk
   >>> nltk.download('punkt')
