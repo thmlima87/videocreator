@@ -3,7 +3,7 @@ import os
 # adding robots to the system path
 sys.path.insert(0, './')
 import json
-import content # robot content
+import rcontent # robot content
 from googleapiclient.discovery import build
 import util
 import pprint
@@ -39,13 +39,13 @@ def fetch_images_from_sentences():
     # loading content
     logging.info("Get sentences from object saved")
     print("Loading content from content.json")
-    video_content = content.load()
+    video_content = rcontent.load()
     for sentence in video_content['sentences']:
         if len(sentence['keywords'])>0:
             if video_content['search_term'] != sentence['keywords'][0]:
                 sentence['google_search_query'] = "{} {}".format(video_content['search_term'], sentence['keywords'][0])
                 sentence['images'] = fetch_images_links(sentence['google_search_query'])
-    content.save(video_content)
+    rcontent.save(video_content)
 
 
 
@@ -56,9 +56,9 @@ def download_images():
     path = "./content/images"
     
     # create directory
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    video_content = content.load()
-    
+    os.makedirs(path, exist_ok=True)
+    video_content = rcontent.load()
+
     list_img = []
 
     for idx_s, sentence in enumerate(video_content['sentences']):

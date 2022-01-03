@@ -6,8 +6,8 @@ import os
 sys.path.insert(0, './robots')
 import saveDatabase as sdb
 import nltk # Natural language toolkit
-import content # content robot
-import images
+import rcontent # content robot
+import rimage
 import logging # log
 
 
@@ -41,10 +41,10 @@ def main():
 
         print("Asking for content...")
         # ask for content
-        video_content['search_term'] = content.ask_for_a_subject()
+        video_content['search_term'] = rcontent.ask_for_a_subject()
 
         # Buscando conteúdo no Wikipedia
-        wikipedia = content.get_wikipedia_content(video_content['search_term'], "pt")
+        wikipedia = rcontent.get_wikipedia_content(video_content['search_term'], "pt")
         video_content['original_content'] = wikipedia['extract']
         video_content['wikipedia_images'] = wikipedia['images'] if 'images' in wikipedia else []
         
@@ -53,11 +53,11 @@ def main():
             result_download = gt.download_wikipedia_images(wikipedia['images'], name_folder)
         '''
         # salvando objeto no disco
-        content.save(video_content)
+        rcontent.save(video_content)
 
         # Clean the main text
         if 'extract' in wikipedia:
-            cleaned_content = content.clear_text(wikipedia['extract'])
+            cleaned_content = rcontent.clear_text(wikipedia['extract'])
             video_content['cleaned_content'] = cleaned_content
         else:
             raise Exception('Content not found')
@@ -74,7 +74,7 @@ def main():
 
             try:
                 # analyzing the content with watson
-                keywords = content.get_keywords_from_sentence(s)
+                keywords = rcontent.get_keywords_from_sentence()
             except Exception as ex_analyze:
                 print(ex_analyze)
 
@@ -84,11 +84,11 @@ def main():
                 'images': []
             })
         # Persisting the object
-        content.save(video_content)
+        rcontent.save(video_content)
 
         logging.info("Starting image robot...")
         print("--- Starting image robot ---")
-        images.start()
+        rimage.start()
 
         print('Processo finalizado!!!')
  
