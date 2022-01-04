@@ -45,23 +45,32 @@ def prepare_images_downloaded():
 
         for f in files:
             f_split = f.split("_")
+            idx_sentence = int(f_split[0])
             filename_original = os.path.join(root, f)
             #filename_with_border = "{}/{}_{}_bordered.jpg".format(path, f_split[0], f_split[1])
             #filename_bg = "{}/{}_{}_bg.jpg".format(path, f_split[0], f_split[1])
             filename_composite = "{}/{}_{}_composite.jpg".format(path, f_split[0], f_split[1])
+            filename_text = "{}/{}_{}_text.jpg".format(path, f_split[0], f_split[1])
+            sentence = video_content['sentences'][idx_sentence]['text']
 
             #create_bg_imagem = "convert {} -background 'white' -blur '0x9' -resize '1920x1080^' -gravity center -extent 1920x1080 {}".format(filename_original, filename_bg)
             #create_image_with_border = "convert {} -bordercolor white -border 10x10 {}".format(filename_original, filename_with_border)
             #create_composite = "convert -compose 'over' -composite -gravity 'center' {} {} {}".format(filename_bg, filename_with_border, filename_composite)
 
-            command = "convert {} -background 'white' -blur '0x9' -resize '1920x1080^' -gravity center -extent 1920x1080 \( {} -bordercolor white -border 10x10 \) -compose over -composite {}".format(filename_original, filename_original, filename_composite)
+            command = "convert {} -background 'white' -blur '0x9' -resize '1920x1080^' -extent 1920x1080 \( {} -bordercolor white -border 10x10 \) -compose over -gravity center -composite {}".format(filename_original, filename_original, filename_composite)
             os.system(command)
-
+            
+            command_text = "convert -size 1024x720 -font helvetica -background 'transparent' -fill white caption:'{}' {}".format(sentence, filename_text)
+            os.system(command_text)
+            
             #os.system(create_image_with_border)
             #os.system(create_bg_imagem)
             #os.system(create_composite)
 
-        
+
+
+def write_senteces_on_images(image, sentence):
+    logging.info("Writing sentences on the images")
 
 
 

@@ -6,6 +6,7 @@ requests
 bs4
 logging
 moviepy=1.0.3
+azure-cognitiveservices-search-imagesearch=2.0.0
 
   >>> import nltk
   >>> nltk.download('punkt')

@@ -9,9 +9,30 @@ import util
 import pprint
 import logging
 import wget
+import urllib
+import requests
+import time
 
 # buscando credenciais
 credentials = util.getCredentials()
+
+
+# implementando busca de imagens pelo Bing
+def search_images_on_bing(query, count="5"):
+    logging.info("Searching images on Bing with custom bing image search")
+
+    url = credentials['bing_endpoint'] + "?q=" + query + "&count="+ count +"&customconfig=" + credentials['bing_custom_config_id'] +"&licence=Public&size=Large"
+    r = requests.get(url, headers={'Ocp-Apim-Subscription-Key': credentials['azure_subscription_key']})
+    response = json.loads(r.text)
+    if 'value' in response:
+        result = [d['contentUrl'] for d in response['value']]
+    else:
+        result = []
+    
+    return result
+
+
+
 
 def fetch_images_links(query, qtde=5, searchType='image', imgSize='XLARGE', start=1):
     
@@ -32,7 +53,7 @@ def fetch_images_links(query, qtde=5, searchType='image', imgSize='XLARGE', star
     return results
 
 
-
+'''
 def fetch_images_from_sentences():
     logging.info("Fetching images from sentences...")
     print("Fetching images from sentences", end='\n\n')
@@ -46,7 +67,23 @@ def fetch_images_from_sentences():
                 sentence['google_search_query'] = "{} {}".format(video_content['search_term'], sentence['keywords'][0])
                 sentence['images'] = fetch_images_links(sentence['google_search_query'])
     rcontent.save(video_content)
+'''
 
+
+def fetch_images_from_sentences():
+    logging.info("Fetching images from sentences...")
+    print("Fetching images from sentences", end='\n\n')
+    # loading content
+    logging.info("Get sentences from object saved")
+    print("Loading content from content.json")
+    video_content = rcontent.load()
+    for sentence in video_content['sentences']:
+        if len(sentence['keywords'])>0:
+            if video_content['search_term'] != sentence['keywords'][0]:
+                sentence['google_search_query'] = "{} {}".format(video_content['search_term'], sentence['keywords'][0])
+                sentence['images'] = search_images_on_bing(sentence['google_search_query'], "5")
+                time.sleep(1.5)
+    rcontent.save(video_content)
 
 
 def download_images():
@@ -75,20 +112,22 @@ def download_images():
 
 
 
-def download_wikipedia_images(images, folder):
+def download_wikipedia_images():
     logging.info("Downloading images from Wikipedia")
-    print("Baixando imagens...", end="\n\n")
-    # path
-    path = "images/download/{}".format(folder)
-    # create directory
-    os.makedirs(os.path.dirname("{}/images.json".format(path)), exist_ok=True)
 
-    # change directory
-    os.chdir(path)
+    os.chdir('./')
+    path = "./content/images"    
+    # create directory
+    os.makedirs(path, exist_ok=True)
+    
+    video_content = rcontent.load()
+
+    print("Baixando imagens...", end="\n\n")
+
     # create data struct
     list_dict_img = []
         
-    for img in images:
+    for img in video_content['wikipedia_images']:
         dict_img = {}
         dict_img['title'] = img['title']
         dict_img['type'] = img['type']
@@ -101,17 +140,19 @@ def download_wikipedia_images(images, folder):
         # removing duplicates
         list_img = []
 
-        for src in img['srcset']:
+        for idx, src in enumerate(img['srcset']):
             i = urllib.parse.unquote('https:{}'.format(src['src']))
+            filename = "{}_original".format(idx)
             try:
                 if src['src'] not in list_img:
-                    #image_filename = wget.download(i, path)
-                   image_filename = wget.download(i) 
+                    image_filename = wget.download(i, "{}/{}".format(path, filename))
+                    #image_filename = wget.download(i)
+                    list_img.append(i)
             except:
                 continue
             
     # saving metadata of images
-    image_json_file = open('images.json', 'w')
+    image_json_file = open('{}images.json'.format(path), 'w')
     json.dump(list_dict_img, image_json_file,  indent=4)
     image_json_file.close()
 
@@ -120,9 +161,11 @@ def download_wikipedia_images(images, folder):
 
 
 def start():
-    #fetch_images_from_sentences()
+    fetch_images_from_sentences()
     download_images()
-
+    #download_wikipedia_images()
+    #r = search_images_on_bing("Stan Lee organização de censura da indústria", "5")
+    #print(r)
 
 
 

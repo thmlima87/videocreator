@@ -43,3 +43,15 @@ convert -font helvetica -fill white -pointsize 36 -draw 'text 10,50 "Floriade 20
 
 ##### Montagem com fotos
 montage *.jpg -shadow -geometry +10+10 montagem.jpg
+
+
+## Video
+https://zulko.github.io/moviepy/gallery.html
+
+
+
+## Bing Custom Search
+1) Criar conta em https://portal.azure.com/
+2) Criar uma subscription pay as you go
+2) Criar o bing resource com Free Tier
+3) Criar uma instancia do bing custom search em: https://www.customsearch.ai/applications

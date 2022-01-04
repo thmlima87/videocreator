@@ -1,0 +1,95 @@
+[
+    {
+        "title": "Ficheiro:Stan_Lee_December_2016.jpg",
+        "type": "image",
+        "caption": "Stan Lee",
+        "srcset": [
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/7/74/Stan_Lee_December_2016.jpg/640px-Stan_Lee_December_2016.jpg",
+                "scale": "1x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/7/74/Stan_Lee_December_2016.jpg/960px-Stan_Lee_December_2016.jpg",
+                "scale": "1.5x"
+            }
+        ]
+    },
+    {
+        "title": "Ficheiro:Signature_of_Stan_Lee.svg",
+        "type": "image",
+        "srcset": [
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/1/15/Signature_of_Stan_Lee.svg/320px-Signature_of_Stan_Lee.svg.png",
+                "scale": "1x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/1/15/Signature_of_Stan_Lee.svg/480px-Signature_of_Stan_Lee.svg.png",
+                "scale": "1.5x"
+            }
+        ]
+    },
+    {
+        "title": "Ficheiro:CapAward.png",
+        "type": "image",
+        "caption": "O primeiro texto publicado por Stan Lee na Timely foi uma hist\u00f3ria em que mostrou o escudo do Capit\u00e3o Am\u00e9rica como uma arma de arremesso.",
+        "srcset": [
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/e/e5/CapAward.png/320px-CapAward.png",
+                "scale": "1x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/e/e5/CapAward.png/480px-CapAward.png",
+                "scale": "1.5x"
+            }
+        ]
+    },
+    {
+        "title": "Ficheiro:Stan_Lee_in_the_army.jpg",
+        "type": "image",
+        "caption": "Stan Lee no Ex\u00e9rcito",
+        "srcset": [
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/4/42/Stan_Lee_in_the_army.jpg/640px-Stan_Lee_in_the_army.jpg",
+                "scale": "1x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/4/42/Stan_Lee_in_the_army.jpg/960px-Stan_Lee_in_the_army.jpg",
+                "scale": "1.5x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/4/42/Stan_Lee_in_the_army.jpg/1280px-Stan_Lee_in_the_army.jpg",
+                "scale": "2x"
+            }
+        ]
+    },
+    {
+        "title": "Ficheiro:Stan_Lee_1975_cropped.jpg",
+        "type": "image",
+        "caption": "Stan Lee em 1975",
+        "srcset": [
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/0/01/Stan_Lee_1975_cropped.jpg/640px-Stan_Lee_1975_cropped.jpg",
+                "scale": "1x"
+            }
+        ]
+    },
+    {
+        "title": "Ficheiro:StanLee_Portrait_painting_by_abijithka.png",
+        "type": "image",
+        "caption": "Fanart de 2018.",
+        "srcset": [
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/d/d1/StanLee_Portrait_painting_by_abijithka.png/640px-StanLee_Portrait_painting_by_abijithka.png",
+                "scale": "1x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/d/d1/StanLee_Portrait_painting_by_abijithka.png/960px-StanLee_Portrait_painting_by_abijithka.png",
+                "scale": "1.5x"
+            },
+            {
+                "src": "//upload.wikimedia.org/wikipedia/commons/thumb/d/d1/StanLee_Portrait_painting_by_abijithka.png/1280px-StanLee_Portrait_painting_by_abijithka.png",
+                "scale": "2x"
+            }
+        ]
+    }
+]
