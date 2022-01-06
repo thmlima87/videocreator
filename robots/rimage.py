@@ -18,10 +18,10 @@ credentials = util.getCredentials()
 
 
 # implementando busca de imagens pelo Bing
-def search_images_on_bing(query, count="5"):
+def search_images_on_bing(query, count="1"):
     logging.info("Searching images on Bing with custom bing image search")
 
-    url = credentials['bing_endpoint'] + "?q=" + query + "&count="+ count +"&customconfig=" + credentials['bing_custom_config_id'] +"&licence=Public&size=Large"
+    url = credentials['bing_endpoint'] + "?q=" + query + "&count="+ count +"&customconfig=" + credentials['bing_custom_config_id'] +"&licence=ShareCommercially&size=Large"
     r = requests.get(url, headers={'Ocp-Apim-Subscription-Key': credentials['azure_subscription_key']})
     response = json.loads(r.text)
     if 'value' in response:
@@ -88,12 +88,13 @@ def fetch_images_from_sentences():
 
 def download_images():
     logging.info("Downloading images from each sentences")
-
     os.chdir('./')
     path = "./content/images"
-    
+
     # create directory
     os.makedirs(path, exist_ok=True)
+    # limpando a pasta
+    os.system("rm -rf {}/*".format(path))
     video_content = rcontent.load()
 
     list_img = []
@@ -103,10 +104,14 @@ def download_images():
             if image not in list_img:
                 #print("{}_{}_original.jpg".format(idx_s,idx_i))
                 list_img.append(image)
+                # if an image dosen't downloaded, try another one
                 try:
-                    image_filename = "{}/{}_{}_original.jpg".format(path,idx_s,idx_i)
+                    print("Trying to download: ", image)
+                    image_filename = "{}/{}_original.jpg".format(path,idx_s)
                     wget.download(image,image_filename)
-                except:
+                    break
+                except Exception as ex:
+                    print(ex)
                     continue
 
 
@@ -161,11 +166,9 @@ def download_wikipedia_images():
 
 
 def start():
+    logging.info("Starting robot image...")
     fetch_images_from_sentences()
     download_images()
-    #download_wikipedia_images()
-    #r = search_images_on_bing("Stan Lee organização de censura da indústria", "5")
-    #print(r)
 
 
 

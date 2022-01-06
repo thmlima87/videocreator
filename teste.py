@@ -1,35 +1,80 @@
-#from azure.cognitiveservices.search.imagesearch import ImageSearchClient
-#from msrest.authentication import CognitiveServicesCredentials
+'''from moviepy.editor import *
 
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
+clips = []
 
-# You may need the below as well
-# pip install pipenv
-# pipenv install requests
-# <importsAndVars>
-import json
-import os
-from pprint import pprint
-import requests 
+clip1 = ImageClip('./content/images/0_1_composite.jpg').set_duration(2)
+clip2 = ImageClip('./content/images/0_1_text.jpg').set_duration(2)
 
-'''
-This sample uses the Bing Custom Search API to search for a query topic and get back user-controlled web page results.
-Bing Custom Search API: https://docs.microsoft.com/en-us/bing/search-apis/bing-custom-search/overview 
+clips.append(clip1)
+clips.append(clip2)
+
+video_clip = concatenate_videoclips(clips, method='compose')
+video_clip.write_videofile("video.mp4", fps=24, remove_temp=True, codec="mpeg4")
 '''
 
-# Add your Bing Custom Search subscription key and endpoint to your environment variables.
-subscriptionKey = "e3f606ef2acc4d088c541a9ae5ea740d"
-endpoint = "https://api.bing.microsoft.com/v7.0/custom/images/search"
-customConfigId = "d2867c4c-d99b-4ae7-b21c-5e1e18bd6aab"  # you can also use "1"
-searchTerm = "Stan Lee organização de censura da indústria"
-# </importsAndVars>
-# <url>
-# Add your Bing Custom Search endpoint to your environment variables.
-#url = endpoint + "/bingcustomsearch/v7.0/search?q=" + searchTerm + "&customconfig=" + customConfigId
-url = endpoint + "?q=" + searchTerm + "&count=5&customconfig=" + customConfigId
-# </url>
-# <request>
-r = requests.get(url, headers={'Ocp-Apim-Subscription-Key': subscriptionKey})
-pprint(json.loads(r.text))
-# </request>
+import numpy as np
+
+from moviepy.editor import *
+from moviepy.video.tools.segmenting import findObjects
+
+# WE CREATE THE TEXT THAT IS GOING TO MOVE, WE CENTER IT.
+
+screensize = (720,460)
+txtClip = TextClip('Cool effect',color='white', font="Amiri-Bold",
+                   kerning = 5, fontsize=100).set_duration(3)
+cvc = CompositeVideoClip( [txtClip.set_pos('center')],
+                        size=screensize)
+
+# THE NEXT FOUR FUNCTIONS DEFINE FOUR WAYS OF MOVING THE LETTERS
+
+
+# helper function
+rotMatrix = lambda a: np.array( [[np.cos(a),np.sin(a)], 
+                                 [-np.sin(a),np.cos(a)]] )
+
+def vortex(screenpos,i,nletters):
+    d = lambda t : 1.0/(0.3+t**8) #damping
+    a = i*np.pi/ nletters # angle of the movement
+    v = rotMatrix(a).dot([-1,0])
+    if i%2 : v[1] = -v[1]
+    return lambda t: screenpos+400*d(t)*rotMatrix(0.5*d(t)*a).dot(v)
+    
+def cascade(screenpos,i,nletters):
+    v = np.array([0,-1])
+    d = lambda t : 1 if t<0 else abs(np.sinc(t)/(1+t**4))
+    return lambda t: screenpos+v*400*d(t-0.15*i)
+
+def arrive(screenpos,i,nletters):
+    v = np.array([-1,0])
+    d = lambda t : max(0, 3-3*t)
+    return lambda t: screenpos-400*v*d(t-0.2*i)
+    
+def vortexout(screenpos,i,nletters):
+    d = lambda t : max(0,t) #damping
+    a = i*np.pi/ nletters # angle of the movement
+    v = rotMatrix(a).dot([-1,0])
+    if i%2 : v[1] = -v[1]
+    return lambda t: screenpos+400*d(t-0.1*i)*rotMatrix(-0.2*d(t)*a).dot(v)
+
+
+
+# WE USE THE PLUGIN findObjects TO LOCATE AND SEPARATE EACH LETTER
+
+letters = findObjects(cvc) # a list of ImageClips
+
+
+# WE ANIMATE THE LETTERS
+
+def moveLetters(letters, funcpos):
+    return [ letter.set_pos(funcpos(letter.screenpos,i,len(letters)))
+              for i,letter in enumerate(letters)]
+
+clips = [ CompositeVideoClip( moveLetters(letters,funcpos),
+                              size = screensize).subclip(0,5)
+          for funcpos in [vortex, cascade, arrive, vortexout] ]
+
+# WE CONCATENATE EVERYTHING AND WRITE TO A FILE
+
+cvc.write_videofile('./teste.avi', fps=25, codec='mpeg4')
+final_clip = concatenate_videoclips(clips)
+final_clip.write_videofile('coolTextEffects.avi',fps=25,codec='mpeg4')
