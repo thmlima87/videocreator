@@ -8,6 +8,7 @@ import saveDatabase as sdb
 import nltk # Natural language toolkit
 import rcontent # content robot
 import rimage
+import rvideo
 import logging # log
 
 
@@ -74,7 +75,7 @@ def main():
 
             try:
                 # analyzing the content with watson
-                keywords = rcontent.get_keywords_from_sentence()
+                keywords = rcontent.get_keywords_from_sentence(s)
             except Exception as ex_analyze:
                 print(ex_analyze)
 
@@ -86,9 +87,10 @@ def main():
         # Persisting the object
         rcontent.save(video_content)
 
-        logging.info("Starting image robot...")
         print("--- Starting image robot ---")
         rimage.start()
+        print("--- Starting Video robot ---")
+        rvideo.start()
 
         print('Processo finalizado!!!')
  
