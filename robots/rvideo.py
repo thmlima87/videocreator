@@ -146,7 +146,7 @@ def compile_video():
 
 
 def start():
-    #prepare_images_downloaded()
+    prepare_images_downloaded()
     compile_video()
 
 
