@@ -60,12 +60,13 @@ https://zulko.github.io/moviepy/gallery.html
 #### Configurações importantes
 - No linux, ao instalar o moviepy, ele automaticamente sabe onde está instalado o Image Magick. No windows é preciso criar a variável de ambiente IMAGEMAGICK_BINARY contendo o caminho do binário.
 - O Moviepy faz uso de recursos do Image Magick. É preciso configurar uma política de segurança, do contrário, dará erro na hora de compilar o video.
--- Como isso é somente uma POC, apenas comentei no arquivo /etc/ImageMagick-x/policy.xml algumas linhas.
+- Como isso é somente uma POC, apenas comentei no arquivo /etc/ImageMagick-x/policy.xml algumas linhas.
 
+```html
 <!--<policy domain="path" rights="none" pattern="@*"/>-->
 <!--<policy domain="resource" name="width" value="16KP"/>-->
 <!--<policy domain="resource" name="height" value="16KP"/>-->
-
+```
 
 ## Bing Custom Search
 1) Criar conta em https://portal.azure.com/

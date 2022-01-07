@@ -12,6 +12,8 @@ import re
 from ibm_watson import NaturalLanguageUnderstandingV1
 import ibm_watson.natural_language_understanding_v1 as nlu #import Features, EntitiesOptions, KeywordsOptions, 
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+import nltk # Natural language toolkit
+from rconfig import *
 
 # buscando credenciais
 credentials = util.getCredentials()
@@ -44,8 +46,7 @@ def get_google_trends():
         
         return key_words
 
-    logging.info("--- Buscando assunto no GOOGLE TRENDS ---")
-    #print("--- Buscando assunto no GOOGLE TRENDS ---", end="\n\n")
+    logging.info("--- Getting GOOGLE TRENDS ---")
     # URL do trending topics do Google
     url = "https://trends.google.com.br/trends/trendingsearches/daily/rss?geo=BR"
 
@@ -54,7 +55,7 @@ def get_google_trends():
 
 
 def get_twitter_trends():
-    logging.info("--- Buscando assunto no TWITTER TRENDS ---")
+    logging.info("--- Getting TWITTER TRENDS ---")
     
     headers = {"Authorization": "Bearer {}".format(credentials['api_bearer_token'])}
     url = "https://api.twitter.com/1.1/trends/place.json?id=23424768"
@@ -103,7 +104,7 @@ def get_wikipedia_content(subject, lang):
         main_result.pop('pageid', None)
         main_result.pop('ns', None)
 
-        result = main_result
+        result = main_result['extract'] if 'extract' in main_result else 'Conteúdo não encontrado'
     except Exception as ex:
         logging.error('Não foi possível buscar conteúdo do wikipedia')
         result = ex
@@ -112,61 +113,28 @@ def get_wikipedia_content(subject, lang):
 
 
 
-def ask_for_a_subject():
+def ask_for_a_subject(options):
+    # log
     logging.info("--- Asking for content ---")
-    logging.info("Getting Google Trends...")
-    gsubject = get_google_trends()
-    logging.info("Getting Twitter Trends..")
-    tsubject = get_twitter_trends()
-    # creating options
-    options = {}
-    options['google'] = gsubject[0]['title']
-    options['twitter'] = tsubject[0]['name']
-
-    print("Here some insights...",end='\n\n')
-
-    print(gsubject[0]['title'], end="\n\n")
-
-    if "related_news" in gsubject[0]:
-        
-        print("Notícias relacionadas: ",end="\n\n")
-
-        for i in gsubject[0]['related_news']:
-            print(i)
-        print("")
-
-    if "description" in gsubject[0]:
-        
-        print("Descrição: ", end="\n\n")
-
-        for i in gsubject[0]['description'].split(","):
-            print(i.strip())
-        print("")
-
-    logging.info('Showing content options')
+    # define variable
     content_choosen = "Nenhuma opção escolhida"
-
-    print("Escolha uma das opções")
-    print("1) {}".format(options['google']))
-    print("2) {}".format(options['twitter']))
-    print("3) Outro... ", end="\n\n")
-
-    while True:
+    print("Escolha uma das opções", end="\n\n")
+    for k in options:
+        print("{}) {}".format(k, options[k]))
+    
+    while content_choosen not in options:
         user_input = int(input("Digite o numero do conteúdo desejado: "))
-        if user_input == 1:
-            content_choosen = options['google']
-            break
-        elif user_input == 2:
-            content_choosen = options['twitter']
-            break
-        elif user_input == 3:
-            content_choosen = input("Digite um termo para ser pesquisado: ")
+        if user_input in options:
+            content_choosen = options[int(user_input)]
+            if content_choosen == 'Outro':
+                content_choosen = input("Digite um termo para ser pesquisado: ")
+                break    
             break
         else:
             print("Escolha uma opção válida")
 
     return str(content_choosen)
-    
+  
 
 '''
 Clear text
@@ -196,22 +164,79 @@ def content_analyze(content):
                         )).get_result()
     return json.dumps(response, indent=2)
 
+
 '''
-Get Keywords from a Sentece
+Create sentences from text
 '''
-def get_keywords_from_sentence(sentence):
-    # params from Watson API
-    authenticator = IAMAuthenticator(credentials['nlu_watson_api_key'])
-    service = NaturalLanguageUnderstandingV1(version='2021-09-26',authenticator=authenticator)
-    service.set_service_url(credentials['nlu_watson_url'])
-    response = service.analyze(
-        text=sentence,
-        features=nlu.Features(
-                        keywords=nlu.KeywordsOptions())
-    ).get_result()
+def create_sentences_from_text():
+    '''
+    Get Keywords from a Sentece
+    '''
+    def get_keywords_from_sentence(sentence):
+        # params from Watson API
+        authenticator = IAMAuthenticator(credentials['nlu_watson_api_key'])
+        service = NaturalLanguageUnderstandingV1(version='2021-09-26',authenticator=authenticator)
+        service.set_service_url(credentials['nlu_watson_url'])
+        response = service.analyze(
+            text=sentence,
+            features=nlu.Features(
+                            keywords=nlu.KeywordsOptions())
+        ).get_result()
+        
+        # returning just the list of keywords when relevance > 0.5
+        return [d['text'] for d in response['keywords'] if d['relevance'] > 0.5]
     
+    # Loading content from content.json    
+    content = load()
+    # creating sentences
+    sentences = nltk.tokenize.sent_tokenize(content['cleaned_content'])
+    content['sentences'] = []
+
+    for s in sentences:
+        try:
+            # analyzing the content with watson
+            keywords = get_keywords_from_sentence(s)
+        except Exception as ex_analyze:
+            print(ex_analyze)
+
+        content['sentences'].append({
+            'text': s,
+            'keywords': keywords,
+            'images': []
+        })
+
+    save(content)
+
+
+
+
+
+
+'''
+Get keywords from a list of sentence from content.json
+'''
+def get_keywords_from_list_of_sentences():
+    logging.info("Getting keywords from content from content.json file")
+    # load content from file
+    content = load()
+    # iterating in sentences
+    for s in content['sentences']:
+        # params from Watson API
+        authenticator = IAMAuthenticator(credentials['nlu_watson_api_key'])
+        service = NaturalLanguageUnderstandingV1(version='2021-09-26',authenticator=authenticator)
+        service.set_service_url(credentials['nlu_watson_url'])
+        response = service.analyze(
+            text=s['text'],
+            features=nlu.Features(
+                            keywords=nlu.KeywordsOptions())
+        ).get_result()
+        
+        s['keywords'] = [d['text'] for d in response['keywords'] if d['relevance'] > 0.5]
+    
+    save(content)
     # returning just the list of keywords when relevance > 0.5
-    return [d['text'] for d in response['keywords'] if d['relevance'] > 0.5]
+    return 
+
 
 
 
@@ -242,3 +267,54 @@ def save(content):
             json.dump(content, f, indent=4, ensure_ascii=False)
         except Exception as ex:
             print(ex)
+
+
+def start():
+    print("Getting google Trends...")
+    gsubject = get_google_trends()
+    print("Getting Twitter Trends...", end="\n\n")
+    tsubject = get_twitter_trends()
+
+    options = {}
+    options[1] = gsubject[0]['title']
+    options[2] = tsubject[0]['name']
+    options[3] = "Outro"
+
+    content = {}
+    content['search_term'] = ask_for_a_subject(options)
+    content['original_content'] = get_wikipedia_content(content['search_term'], "pt")
+    #video_content['wikipedia_images'] = wikipedia['images'] if 'images' in wikipedia else []
+    if content['original_content'] != '':
+        content['cleaned_content'] = clear_text(content['original_content'])
+        
+    # Breaking the text in sentences
+    logging.info("Breaking the main text in sentences...")
+
+    # Saving content on disk
+    save(content)
+    
+
+
+
+# Para execução sozinha
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'start':
+        start()
+
+'''
+
+    print(gsubject[0]['title'], end="\n\n")
+    print("Here are some insights!", end="\n\n")
+    if "related_news" in gsubject[0]:    
+        print("Notícias relacionadas: ",end="\n\n")
+        for i in gsubject[0]['related_news']:
+            print(i)
+        print("")
+
+    if "description" in gsubject[0]:
+        print("Descrição: ", end="\n\n")
+        for i in gsubject[0]['description'].split(","):
+            print(i.strip())
+        print("")
+'''
+    

@@ -1,0 +1,3 @@
+import os
+
+MAX_SENTENCES_TO_FETCH = 5
