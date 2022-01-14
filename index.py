@@ -8,6 +8,7 @@ import nltk # Natural language toolkit
 import rcontent # content robot
 import rimage
 import rvideo
+import ryoutube
 import logging # log
 
 
@@ -41,7 +42,9 @@ def main():
         rimage.start()
         print("--- Starting Video robot ---")
         rvideo.start()
-
+        print("--- Starting to upload video to Youtube ---")
+        ryoutube.start()
+        
         print('Processo finalizado!!!')
  
     except Exception as ex:
