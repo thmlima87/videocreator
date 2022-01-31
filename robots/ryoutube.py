@@ -7,7 +7,8 @@ import time
 import sys
 sys.path.insert(0, './')
 import logging
-from rconfig import CONTENT_PATH, CONTENT_IMAGES_PATH
+import rcontent
+from rconfig import CONTENT_PATH, CONTENT_IMAGES_PATH, CREDENTIALS_PATH
 # imports for youtube upload
 from apiclient.discovery import build
 from apiclient.errors import HttpError
@@ -21,41 +22,36 @@ from oauth2client.tools import argparser, run_flow
 ##########################################################################################################
 
 YOUTUBE_VIDEO_PRIVACY_STATUS = 'private'
-YOUTUBE_VIDEO_CATEGORY_ID = 19
-YOUTUBE_VIDEO_FILE = CONTENT_PATH + '/video_sentences.avi'
-YOUTUBE_VIDEO_TITLE = 'Just a test'
-YOUTUBE_VIDEO_DESCRIPTION = 'Just a simple test'
-YOUTUBE_VIDEO_KEYWORDS = ['test', 'simple']
-
 
 YOUTUBE_VIDEO_THUMBNAILS = {
     "default": {
-        "url": CONTENT_IMAGES_PATH + "/thumb_default.jpg",
+        "url": CONTENT_IMAGES_PATH + "/thumb_default.png",
         "width": 120,
         "height": 90
     },
     "medium": {
-        "url": CONTENT_IMAGES_PATH + "/thumb_medium.jpg",
+        "url": CONTENT_IMAGES_PATH + "/thumb_medium.png",
         "width": 320,
         "height": 180
     },
     "high": {
-        "url": CONTENT_IMAGES_PATH + "/thumb_high.jpg",
+        "url": CONTENT_IMAGES_PATH + "/thumb_high.png",
         "width": 480,
         "height": 360
     },
     "standard": {
-        "url": CONTENT_IMAGES_PATH + "/thumb_standard.jpg",
+        "url": CONTENT_IMAGES_PATH + "/thumb_standard.png",
         "width": 640,
         "height": 480
     },
     "maxres": {
-        "url": CONTENT_IMAGES_PATH + "/thumb_maxres.jpg",
+        "url": CONTENT_IMAGES_PATH + "/thumb_maxres.png",
         "width": 1280,
         "height": 720
     }
 }
 
+#print(YOUTUBE_VIDEO_THUMBNAILS)
 
 # Explicitly tell the underlying HTTP transport library not to retry, since
 # we are handling retry logic ourselves.
@@ -81,7 +77,7 @@ RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 #   https://developers.google.com/youtube/v3/guides/authentication
 # For more information about the client_secrets.json file format, see:
 #   https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-CLIENT_SECRETS_FILE = "./credentials/youtube_client_secrets.json"
+CLIENT_SECRETS_FILE = "{}/youtube_client_secrets.json".format(CREDENTIALS_PATH)
 
 # This OAuth 2.0 access scope allows an application to upload files to the
 # authenticated user's YouTube channel, but doesn't allow other types of access.
@@ -112,7 +108,7 @@ VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 
 def get_authenticated_service():
     flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE, scope=YOUTUBE_UPLOAD_SCOPE, message=MISSING_CLIENT_SECRETS_MESSAGE)
-    storage = Storage("./credentials/%s-oauth2.json" % sys.argv[0])
+    storage = Storage("{}/{}-oauth2.json".format(CREDENTIALS_PATH, sys.argv[0]))
     credentials = storage.get()
     
     if credentials is None or credentials.invalid:
@@ -122,23 +118,50 @@ def get_authenticated_service():
 
 
 
+def get_tags(video_content):
+    keywords = []
 
-
-def initialize_upload(youtube):
+    for sentence in video_content['sentences']:
+        for k in sentence['keywords']:
+            if k not in keywords:
+                keywords.append(k)
     
+    return keywords
+
+
+
+
+def initialize_upload(youtube, video_content):
+    list_of_used_images = '\n'.join('✅ ' + img for img in video_content['images_used'])
+    list_of_sentences = '\n'.join([ s['text'] for s in video_content['sentences']])
+    YOUTUBE_VIDEO_DESCRIPTION = """
+Conheça um pouco mais sobre {}:
+
+{}
+
+👉 Referências:
+
+💥 Wikipedia
+💥 Custom Search API - Bing.
+
+👉 Imagens utilizadas no vídeo:
+
+{}
+""".format(video_content['search_term'], list_of_sentences, list_of_used_images)
+
+    YOUTUBE_VIDEO_FILE = CONTENT_PATH + '/{}'.format(video_content['video_filename'])
+        
     body= {
         "snippet": {
-            "title": YOUTUBE_VIDEO_TITLE,
+            "title": video_content['youtube_details']['title'],
             "description": YOUTUBE_VIDEO_DESCRIPTION,
-            "tags": YOUTUBE_VIDEO_KEYWORDS,
-            "categoryId": YOUTUBE_VIDEO_CATEGORY_ID,
-            "thumbnails": YOUTUBE_VIDEO_THUMBNAILS
+            "tags": get_tags(video_content),
+            "categoryId": video_content['youtube_details']['category_id']
         },
         "status": {
             "privacyStatus": YOUTUBE_VIDEO_PRIVACY_STATUS
         }
     }
-
     # Call the API's videos.insert method to create and upload the video.
     insert_request = youtube.videos().insert(
     part=",".join(body.keys()),
@@ -156,11 +179,11 @@ def initialize_upload(youtube):
     # 1024 * 1024 (1 megabyte).
     media_body=MediaFileUpload(YOUTUBE_VIDEO_FILE, chunksize=-1, resumable=True)
     )
+    insert_response = resumable_upload(insert_request)
+    # set thumbnail
+    set_thumbnail(youtube, insert_response['id'])
 
-    resumable_upload(insert_request)
-
-
-
+    
 # This method implements an exponential backoff strategy to resume a
 # failed upload.
 def resumable_upload(insert_request):
@@ -194,30 +217,33 @@ def resumable_upload(insert_request):
             print ("Sleeping %f seconds and then retrying..." % sleep_seconds)
             time.sleep(sleep_seconds)
 
+    return response
 
 
-def  create_thumbnail():
+
+def  create_thumbnail(video_content):
     logging.info("Creating Thumbnail...")
+
     # apagando as thumbs existentes
     os.system("rm -rf {}/thumb*".format(CONTENT_IMAGES_PATH))
 
     # criando os comandos para execução.
     # Importante: Refatorar para que a montagem do comando esteja dentro de um for
 
-    command_thumb_default = "convert -size {}x{} -font helvetica -pointsize 24 -background 'black' -fill white -gravity center caption:'THUMB DEFAULT' ./content/images/thumb_default.png"\
-        .format(YOUTUBE_VIDEO_THUMBNAILS['default']['width'],YOUTUBE_VIDEO_THUMBNAILS['default']['height'])
+    command_thumb_default = "convert -size {}x{} -font helvetica -pointsize 24 -background 'black' -fill white -gravity center caption:'{}' ./content/images/thumb_default.png"\
+        .format(YOUTUBE_VIDEO_THUMBNAILS['default']['width'],YOUTUBE_VIDEO_THUMBNAILS['default']['height'], video_content['youtube_details']['title'])
         
-    command_thumb_medium = "convert -size {}x{} -font helvetica -pointsize 26 -background 'black' -fill white -gravity center caption:'THUMB MEDIUM' ./content/images/thumb_medium.png"\
-        .format(YOUTUBE_VIDEO_THUMBNAILS['medium']['width'],YOUTUBE_VIDEO_THUMBNAILS['medium']['height'])
+    command_thumb_medium = "convert -size {}x{} -font helvetica -pointsize 26 -background 'black' -fill white -gravity center caption:'{}' ./content/images/thumb_medium.png"\
+        .format(YOUTUBE_VIDEO_THUMBNAILS['medium']['width'],YOUTUBE_VIDEO_THUMBNAILS['medium']['height'], video_content['youtube_details']['title'])
 
-    command_thumb_high = "convert -size {}x{} -font helvetica -pointsize 30 -background 'black' -fill white -gravity center caption:'THUMB HIGH' ./content/images/thumb_high.png"\
-        .format(YOUTUBE_VIDEO_THUMBNAILS['high']['width'],YOUTUBE_VIDEO_THUMBNAILS['high']['height'])
+    command_thumb_high = "convert -size {}x{} -font helvetica -pointsize 30 -background 'black' -fill white -gravity center caption:'{}' ./content/images/thumb_high.png"\
+        .format(YOUTUBE_VIDEO_THUMBNAILS['high']['width'],YOUTUBE_VIDEO_THUMBNAILS['high']['height'], video_content['youtube_details']['title'])
     
-    command_thumb_standard = "convert -size {}x{} -font helvetica -pointsize 50 -background 'black' -fill white -gravity center caption:'THUMB STANDARD' ./content/images/thumb_standard.png"\
-        .format(YOUTUBE_VIDEO_THUMBNAILS['standard']['width'],YOUTUBE_VIDEO_THUMBNAILS['high']['height'])
+    command_thumb_standard = "convert -size {}x{} -font helvetica -pointsize 50 -background 'black' -fill white -gravity center caption:'{}' ./content/images/thumb_standard.png"\
+        .format(YOUTUBE_VIDEO_THUMBNAILS['standard']['width'],YOUTUBE_VIDEO_THUMBNAILS['high']['height'], video_content['youtube_details']['title'])
 
-    command_thumb_maxres = "convert -size {}x{} -font helvetica -pointsize 70 -background 'black' -fill white -gravity center caption:'THUMB MAXRES' ./content/images/thumb_maxres.png"\
-        .format(YOUTUBE_VIDEO_THUMBNAILS['maxres']['width'],YOUTUBE_VIDEO_THUMBNAILS['high']['height'])
+    command_thumb_maxres = "convert -size {}x{} -font helvetica -pointsize 70 -background 'black' -fill white -gravity center caption:'{}' ./content/images/thumb_maxres.png"\
+        .format(YOUTUBE_VIDEO_THUMBNAILS['maxres']['width'],YOUTUBE_VIDEO_THUMBNAILS['high']['height'], video_content['youtube_details']['title'])
 
     os.system(command_thumb_default)
     os.system(command_thumb_medium)
@@ -229,33 +255,34 @@ def  create_thumbnail():
         # using list comprehension to return just composite files
     #    image = sorted([f for f in files if "composite" in f])[0]
         
-    
 
-def upload_video():
-    return ''
 
+def set_thumbnail(youtube, video_id):
+    print('Setting the thumbnail: {} for video: {}'.format(CONTENT_IMAGES_PATH + "/thumb_maxres.png", video_id))
+    youtube.thumbnails().set(
+        videoId=video_id,
+        media_body=CONTENT_IMAGES_PATH + "/thumb_maxres.png"
+    ).execute()
 
 
 def start():
     logging.info('--- Starting Youtube robot ---')
+    video_content = rcontent.load()
     youtube = get_authenticated_service()
-
     try:
-        create_thumbnail()
-        #initialize_upload(youtube)
-        result = 'Upload realizado com sucesso!'
+        create_thumbnail(video_content)
+        initialize_upload(youtube, video_content)
+        result = "Upload concluído!"
     except HttpError as e:
             result = "An HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
     except Exception as ex:
         result = ex
-
-    return result
+    print(result)
 
     
 
 
-# To execute alone
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'start':
-        result = start()
-        print(result)
+
+# em caso de execução do arquivo diretamente
+if __name__ == '__main__':
+    start()

@@ -1,5 +1,6 @@
 import sys
 import os
+from rconfig import CONTENT_PATH, CONTENT_IMAGES_PATH, CREDENTIALS_PATH
 # adding robots to the system path
 sys.path.insert(0, './')
 import json
@@ -53,7 +54,6 @@ def fetch_images_links(query, qtde=5, searchType='image', imgSize='XLARGE', star
     return results
 
 
-'''
 def fetch_images_from_sentences():
     logging.info("Fetching images from sentences...")
     print("Fetching images from sentences", end='\n\n')
@@ -64,32 +64,17 @@ def fetch_images_from_sentences():
     for sentence in video_content['sentences']:
         if len(sentence['keywords'])>0:
             if video_content['search_term'] != sentence['keywords'][0]:
-                sentence['google_search_query'] = "{} {}".format(video_content['search_term'], sentence['keywords'][0])
-                sentence['images'] = fetch_images_links(sentence['google_search_query'])
-    rcontent.save(video_content)
-'''
-
-
-def fetch_images_from_sentences():
-    logging.info("Fetching images from sentences...")
-    print("Fetching images from sentences", end='\n\n')
-    # loading content
-    logging.info("Get sentences from object saved")
-    print("Loading content from content.json")
-    video_content = rcontent.load()
-    for sentence in video_content['sentences']:
-        if len(sentence['keywords'])>0:
-            if video_content['search_term'] != sentence['keywords'][0]:
-                sentence['google_search_query'] = "{} {}".format(video_content['search_term'], sentence['keywords'][0])
-                sentence['images'] = search_images_on_bing(sentence['google_search_query'], "5")
+                sentence['image_search_query'] = "{} {}".format(video_content['search_term'], sentence['keywords'][0])
+                sentence['images'] = search_images_on_bing(sentence['image_search_query'], "5")
                 time.sleep(1.5)
     rcontent.save(video_content)
 
 
 def download_images():
     logging.info("Downloading images from each sentences")
-    os.chdir('./')
-    path = "./content/images"
+    #os.chdir('./')
+    #path = "./content/images"
+    path = CONTENT_IMAGES_PATH
 
     # create directory
     os.makedirs(path, exist_ok=True)
@@ -102,17 +87,20 @@ def download_images():
     for idx_s, sentence in enumerate(video_content['sentences']):
         for idx_i, image in enumerate(sentence['images']):
             if image not in list_img:
-                #print("{}_{}_original.jpg".format(idx_s,idx_i))
-                list_img.append(image)
                 # if an image dosen't downloaded, try another one
                 try:
                     print("Trying to download: ", image)
                     image_filename = "{}/{}_original.jpg".format(path,idx_s)
                     wget.download(image,image_filename)
+                    list_img.append(image)
+                    print("")
                     break
                 except Exception as ex:
-                    print(ex)
+                    logging.error(ex)
                     continue
+    
+    video_content['images_used'] = list_img
+    rcontent.save(video_content)
 
 
 
@@ -172,11 +160,6 @@ def start():
 
 
 
-# Para execução sozinha
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'start':
-        start()
-
-#fetch_images_from_sentences()
-#print(images_links)
-#print(content)
+# em caso de execução do arquivo diretamente
+if __name__ == '__main__':
+    start()

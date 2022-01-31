@@ -3,8 +3,26 @@ sys.path.insert(0, './')
 import rcontent
 import logging
 import os
+import util
+from PIL import Image
+from rconfig import\
+    CONTENT_PATH,\
+    CONTENT_IMAGES_PATH,\
+    CONTENT_SOUND_PATH,\
+    CREDENTIALS_PATH,\
+    VIDEO_INTRODUCTION_TEXT,\
+    VIDEO_SCREENSIZE,\
+    VIDEO_TEXT_COLOR_DEFAULT,\
+    VIDEO_TEXT_FONT_DEFAULT,\
+    VIDEO_FONT_SIZE_DEFAULT,\
+    VIDEO_TEXT_POSITION_DEFAULT,\
+    VIDEO_FRAME_DURATION_DEFAULT,\
+    VIDEO_TEXT_KERNING_DEFAULT,\
+    VIDEO_CODEC_DEFAULT,\
+    VIDEO_FPS_DEFAULT
 
-import numpy as np
+
+#import numpy as np
 
 from moviepy.editor import *
 from moviepy.video.tools.segmenting import findObjects
@@ -41,10 +59,12 @@ def prepare_images_downloaded():
 
 def prepare_images_downloaded():
     logging.info("Preparing images downloaded to compile the video")
-
-    os.chdir('./')
-    path = "./content/images"
     
+    #os.chdir('./')
+    #path = "./content/images"
+    path = CONTENT_IMAGES_PATH
+    # removing existing composite images
+    os.system("rm -rf {}/*_composite*".format(path))
     # create directory
     video_content = rcontent.load()
         
@@ -54,52 +74,52 @@ def prepare_images_downloaded():
             f_split = f.split("_")
             idx_sentence = int(f_split[0])
             filename_original = os.path.join(root, f)
-            #filename_with_border = "{}/{}_{}_bordered.jpg".format(path, f_split[0], f_split[1])
-            #filename_bg = "{}/{}_{}_bg.jpg".format(path, f_split[0], f_split[1])
             filename_composite = "{}/{}_composite.jpg".format(path, f_split[0])
-            #filename_text = "{}/{}_text.jpg".format(path, f_split[0])
+            filename_resized = "{}/{}_resized.jpg".format(path, f_split[0])
             sentence = video_content['sentences'][idx_sentence]['text']
-
-            #create_bg_imagem = "convert {} -background 'white' -blur '0x9' -resize '1920x1080^' -gravity center -extent 1920x1080 {}".format(filename_original, filename_bg)
-            #create_image_with_border = "convert {} -bordercolor white -border 10x10 {}".format(filename_original, filename_with_border)
-            #create_composite = "convert -compose 'over' -composite -gravity 'center' {} {} {}".format(filename_bg, filename_with_border, filename_composite)
-
-            command = "convert {} -background 'white' -blur '0x9' -resize '1920x1080^' -extent 1920x1080 \( {} -bordercolor white -border 10x10 \) -compose over -gravity center -composite {}".format(filename_original, filename_original, filename_composite)
-            os.system(command)
+            # creating comands
+            create_image_resized = "convert {} -resize '1280x720' {}".format(filename_original, filename_resized)
+            create_image_composite = "convert {} -background 'white' -blur '0x9' -resize '1920x1080^' -extent 1920x1080 \( {} -bordercolor white -border 10x10 \) -compose over -gravity center -composite {}".format(filename_original, filename_resized, filename_composite)
             
-            #command_text = "convert -size 1024x720 -font helvetica -background 'transparent' -fill white caption:'{}' {}".format(sentence, filename_text)
-            #os.system(command_text)
-            
-            #os.system(create_image_with_border)
-            #os.system(create_bg_imagem)
-            #os.system(create_composite)
+            # creating images
+            os.system(create_image_resized)
+            os.system(create_image_composite)
 
+            # removing resized images
+            os.system("rm -rf {}/*_resized*".format(path))
 
 
 def compile_video():
     logging.info("Compiling video...")
 
-    os.chdir('./')
-    path = "./content/images"
+    formatter = {"PNG": "RGBA", "JPEG": "RGB"}
+    #os.chdir('./')
+    #path = "./content/images"
+    path = CONTENT_IMAGES_PATH
     
     # create directory
     video_content = rcontent.load()
 
-    # carregando musica
-    music = AudioFileClip('./content/music/gypsy-jaxx.mp3')
-    new_audioclip = CompositeAudioClip([music])
+    video_filename = util.remove_accents(video_content['search_term']).replace(" ", "_") + ".mp4"
+    video_content['video_filename'] = video_filename
+    video_content['youtube_details']['title'] = "Um pouco sobre {}".format(video_content['search_term'])
 
-    screensize = (1920,1080)
+    rcontent.save(video_content)
+    # carregando musica
+    music = AudioFileClip('{}/gypsy-jaxx.mp3'.format(CONTENT_SOUND_PATH))
+    new_audioclip = CompositeAudioClip([music])
+    
+    screensize = VIDEO_SCREENSIZE
     txt_size = (.8*screensize[0],0)
-    color = 'white'
-    font = 'helvetica'
-    font_size = 50
+    color = VIDEO_TEXT_COLOR_DEFAULT
+    font = VIDEO_TEXT_FONT_DEFAULT
+    font_size = VIDEO_FONT_SIZE_DEFAULT
     list_video_clips = []
     # Criando introdução
-    txt_clip1 = TextClip('Variavel Constante\npresents...',color=color, font=font, kerning = 5, fontsize=100, method='caption', size=txt_size).set_pos('center').set_duration(4)
-    txt_clip2 = TextClip('um pouco sobre...',color=color, font=font, kerning = 5, fontsize=100, method='caption', size=txt_size).set_pos('center').set_duration(4)
-    txt_clip3 = TextClip(video_content['search_term'],color=color, font=font, kerning = 5, fontsize=100, method='caption', size=txt_size).set_pos('center').set_duration(4)
-    img_clip = ImageClip("{}../../default/bg_default_new.jpeg".format(path)).set_duration(4)
+    txt_clip1 = TextClip(VIDEO_INTRODUCTION_TEXT,color=color, font=font, kerning = VIDEO_TEXT_KERNING_DEFAULT, fontsize=100, method='caption', size=txt_size).set_pos(VIDEO_TEXT_POSITION_DEFAULT).set_duration(VIDEO_FRAME_DURATION_DEFAULT)
+    txt_clip2 = TextClip('um pouco sobre...',color=color, font=font, kerning = VIDEO_TEXT_KERNING_DEFAULT, fontsize=100, method='caption', size=txt_size).set_pos(VIDEO_TEXT_POSITION_DEFAULT).set_duration(VIDEO_FRAME_DURATION_DEFAULT)
+    txt_clip3 = TextClip(video_content['search_term'],color=color, font=font, kerning = VIDEO_TEXT_KERNING_DEFAULT, fontsize=100, method='caption', size=txt_size).set_pos(VIDEO_TEXT_POSITION_DEFAULT).set_duration(VIDEO_FRAME_DURATION_DEFAULT)
+    img_clip = ImageClip("{}../../default/bg_default_new.jpeg".format(path)).set_duration(VIDEO_FRAME_DURATION_DEFAULT)
     cvc1 = CompositeVideoClip([img_clip,txt_clip1], size=screensize)
     cvc2 = CompositeVideoClip([img_clip,txt_clip2], size=screensize)
     cvc3 = CompositeVideoClip([img_clip,txt_clip3], size=screensize)
@@ -109,8 +129,15 @@ def compile_video():
 
     #for root, folders, files in os.walk('./content/images'):
     for idx, sentence in enumerate(video_content['sentences']):
+
         filename = "{}/{}_composite.jpg".format(path, idx)
         
+        # workaround to resolve the problems with grayscale image
+        img = Image.open(filename)
+        rgbimg = Image.new(formatter.get(img.format, 'RGB'), img.size)
+        rgbimg.paste(img)
+        rgbimg.save(filename, format=img.format)
+
         duration = int(len(sentence['text'])/15)
 
         txt_clip = TextClip('{}'.format(sentence['text']),color=color, font=font, kerning = 5, fontsize=font_size, method='caption', size=txt_size).set_pos('center').set_duration(duration)
@@ -138,7 +165,7 @@ def compile_video():
 
     audio = afx.audio_loop(music, duration=final_clip.duration)
     final = final_clip.set_audio(audio).audio_fadeout(5)
-    final.write_videofile('./content/video_sentences.avi',fps=30,codec='mpeg4')
+    final.write_videofile('{}/{}'.format(CONTENT_PATH, video_filename),fps=VIDEO_FPS_DEFAULT,codec=VIDEO_CODEC_DEFAULT)
 
 
 
@@ -151,8 +178,6 @@ def start():
 
 
 
-
-# Para execução sozinha
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'start':
-        start()
+# em caso de execução do arquivo diretamente
+if __name__ == '__main__':
+    start()
