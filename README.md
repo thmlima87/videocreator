@@ -20,33 +20,44 @@ Projeto para criação automática de videos
 
 ### Image Magick
 #### Installing on Ubuntu
+```console
 sudo apt-get install imagemagick
-
+```
 #### Default path for configs
+```console
 /etc/ImageMagick-x
+```
 
 #### Comandos Úteis
 
 ##### criando imagem borrada
-> convert arquivo_original.jpg -background 'white' -blur '0x9' -resize '1920x1080' novo_arquivo.jpg
-> convert arquivo_original.jpg -background 'white' -blur '0x9' -resize '1920x1080^' -gravity center -extent 1920x1080 arquivo_convertido.jpg
-
+```console
+convert arquivo_original.jpg -background 'white' -blur '0x9' -resize '1920x1080' novo_arquivo.jpg
+convert arquivo_original.jpg -background 'white' -blur '0x9' -resize '1920x1080^' -gravity center -extent 1920x1080 arquivo_convertido.jpg
+```
 ##### Criar borda fade na imagem
-> convert 3_0_original.jpg6wf6ou70.tmp -bordercolor black -fill white \
+```console
+convert arquivo_original.jpg -bordercolor black -fill white \
    \( -clone 0 -colorize 100 -shave 10x10 -border 10x10 -blur 0x10 \) \
    -compose copyopacity -composite output.png
 
-convert 3_0_original.jpg6wf6ou70.tmp -bordercolor white -border 10x10 output.png
+
+convert arquivo_original -bordercolor white -border 10x10 output.png
+```
 
 ##### Criando composição
-> convert -compose 'over' -composite -gravity 'center' 0_1_bg.jpg 0_1_original.jpg 0_1_converted.jpg
-
+```console
+convert -compose 'over' -composite -gravity 'center' 0_1_bg.jpg 0_1_original.jpg 0_1_converted.jpg
+```
 ##### Criando imagens com texto
+```console
 convert -size 800x500 -font helvetica -pointsize 36 -background 'transparent' -fill white -gravity south caption:'teste teste' texto.png
 convert -font helvetica -fill white -pointsize 36 -draw 'text 10,50 "Floriade 2002, Canberra, Australia"' input_file.jpg output_file.png
-
+```
 ##### Montagem com fotos
+```console
 montage *.jpg -shadow -geometry +10+10 montagem.jpg
+```
 
 
 ### MoviePy
