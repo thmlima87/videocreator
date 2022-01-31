@@ -32,19 +32,19 @@ import logging # log
 def main():
     try:
         # Iniciando o robo de conteúdo
+        
         print("Starting Content robot")
         rcontent.start()
-        print("Creating sentences from cleaned text...")
-        rcontent.create_sentences_from_text()
-        print("Getting keywords from sentences...")
-        rcontent.get_keywords_from_list_of_sentences()
+        
         print("--- Starting image robot ---")
         rimage.start()
+        
         print("--- Starting Video robot ---")
         rvideo.start()
+        
         print("--- Starting to upload video to Youtube ---")
         ryoutube.start()
-        
+
         print('Processo finalizado!!!')
  
     except Exception as ex:

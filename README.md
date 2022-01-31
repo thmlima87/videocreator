@@ -11,6 +11,8 @@ https://www.reddit.com/r/moviepy/comments/343q8j/what_is_the_correct_way_to_add_
 https://docs.microsoft.com/en-us/rest/api/cognitiveservices-bingsearch/bing-custom-images-api-v7-reference#:~:text=The%20maximum%20file%20size%20that%20you%20may%20specify%20is%20520%2C192%20bytes.
 https://legacy.imagemagick.org/discourse-server/viewtopic.php?t=26196
 http://sergioaraujo.pbworks.com/w/page/15863922/imagemagick
+#### Remoção de acentuação
+https://rogeriopradoj.com/2019/07/14/como-tirar-acentos-de-string-no-python-transliterate-unicodedata-e-unidecode//
 
 #### Compute Search Engine
 https://cse.google.com/cse/all
@@ -93,8 +95,30 @@ Depois de importar a lib nltk, será necessário executar a linha debaixo:
   >>> nltk.download('punkt')
 
 
+# INFORMAÇÕES ÚTEIS
+https://github.com/Zulko/moviepy/issues/623
+
+A lib moviepy apresenta o seguinte erro com imagens em preto e branco
+
+```python
+Error: could not broadcast input array from shape (1080,1920) into shape (1080,1920,3)
+```
+
+#### Contornando o problema
+```python
+from PIL import Image
+formatter = {"PNG": "RGBA", "JPEG": "RGB"}
+img = Image.open(file_name)
+rgbimg = Image.new(formatter.get(img.format, 'RGB'), img.size)
+rgbimg.paste(img)
+rgbimg.save(file_name, format=img.format)
+```
+
+
+
 
 # YOUTUBE CATEGORIES LIST
+
 1 - Film & Animation
 2 - Autos & Vehicles
 10 - Music

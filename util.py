@@ -2,6 +2,8 @@
 import yaml
 import json
 import logging
+import unidecode
+import unicodedata
 
 def getCredentials():
     
@@ -14,3 +16,6 @@ def getCredentials():
     
     return credentials
 
+
+def remove_accents(text):
+    return unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("utf-8")

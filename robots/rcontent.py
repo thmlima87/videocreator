@@ -85,12 +85,12 @@ def get_wikipedia_content(subject, lang):
     try:
         # main subject
         #url = "https://{}.wikipedia.org/api/rest_v1/page/summary/{}".format(lang, subject)
-        main_url = "https://{}.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&exlimit=1&titles={}&explaintext=1&formatversion=2&media=1".format(lang, urllib.parse.unquote(subject))
+        main_url = WIKIPEDIA_MAIN_URL.format(lang, urllib.parse.unquote(subject))
         main_content = requests.get(main_url)
         main_content_json = main_content.json()
         main_result = main_content_json['query']['pages'][0]
         if  'missing' in main_content_json:
-            main_result['missing'] = main_content_json['missing']
+            return main_content_json['missing']
         # media
         media_url = "https://{}.wikipedia.org/api/rest_v1/page/media-list/{}?redirect=false".format(lang, subject)
         media_content = requests.get(media_url)
@@ -104,34 +104,50 @@ def get_wikipedia_content(subject, lang):
         main_result.pop('pageid', None)
         main_result.pop('ns', None)
 
-        result = main_result['extract'] if 'extract' in main_result else 'Conteúdo não encontrado'
-    except Exception as ex:
-        logging.error('Não foi possível buscar conteúdo do wikipedia')
-        result = ex
-
-    return result
-
-
-
-def ask_for_a_subject(options):
-    # log
-    logging.info("--- Asking for content ---")
-    # define variable
-    content_choosen = "Nenhuma opção escolhida"
-    print("Escolha uma das opções", end="\n\n")
-    for k in options:
-        print("{}) {}".format(k, options[k]))
-    
-    while content_choosen not in options:
-        user_input = int(input("Digite o numero do conteúdo desejado: "))
-        if user_input in options:
-            content_choosen = options[int(user_input)]
-            if content_choosen == 'Outro':
-                content_choosen = input("Digite um termo para ser pesquisado: ")
-                break    
-            break
+        if 'extract' in main_result:
+            return main_result['extract']
         else:
-            print("Escolha uma opção válida")
+            raise ValueError("Conteúdo não encontrado")
+
+    except Exception as ex:
+        logging.error(ex)
+        print(ex)
+
+
+
+
+def ask_for_a_subject():
+    try:
+        print("Getting google Trends...")
+        gsubject = get_google_trends()
+        print("Getting Twitter Trends...", end="\n\n")
+        tsubject = get_twitter_trends()
+
+        options = {}
+        options[1] = gsubject[0]['title']
+        options[2] = tsubject[0]['name']
+        options[3] = "Outro"
+
+        # log
+        logging.info("--- Asking for content ---")
+        # define variable
+        content_choosen = "Nenhuma opção escolhida"
+        print("Escolha uma das opções", end="\n\n")
+        for k in options:
+            print("{}) {}".format(k, options[k]))
+        
+        while content_choosen not in options:
+            user_input = int(input("Digite o numero do conteúdo desejado: "))
+            if user_input in options:
+                content_choosen = options[int(user_input)]
+                if content_choosen == 'Outro':
+                    content_choosen = input("Digite um termo para ser pesquisado: ")
+                    break    
+                break
+            else:
+                print("Escolha uma opção válida")
+    except Exception as ex:
+        return ex
 
     return str(content_choosen)
   
@@ -168,7 +184,7 @@ def content_analyze(content):
 '''
 Create sentences from text
 '''
-def create_sentences_from_text():
+def create_sentences_from_text(cleaned_content):
     '''
     Get Keywords from a Sentece
     '''
@@ -187,10 +203,10 @@ def create_sentences_from_text():
         return [d['text'] for d in response['keywords'] if d['relevance'] > 0.5]
     
     # Loading content from content.json    
-    content = load()
+    #content = load()
     # creating sentences
-    sentences = nltk.tokenize.sent_tokenize(content['cleaned_content'])
-    content['sentences'] = []
+    sentences = nltk.tokenize.sent_tokenize(cleaned_content)[:MAX_SENTENCES_TO_FETCH]
+    list_sentences = []
 
     for s in sentences:
         try:
@@ -199,13 +215,13 @@ def create_sentences_from_text():
         except Exception as ex_analyze:
             print(ex_analyze)
 
-        content['sentences'].append({
+        list_sentences.append({
             'text': s,
             'keywords': keywords,
             'images': []
         })
 
-    save(content)
+    return list_sentences
 
 
 
@@ -269,52 +285,58 @@ def save(content):
             print(ex)
 
 
+
+def ask_for_a_category():
+    # log
+    logging.info("--- Asking for a category ---")
+    print("Qual a categoria do conteúdo? ", end="\n\n")
+
+    category_choosen = 0
+    available_options = []
+    for category in YOUTUBE_CATEGORY_LIST:
+        print("{}) {}".format(category[0], category[1]))
+        available_options.append(category[0])
+    
+    while category_choosen == 0:
+        user_input = int(input("Digite o numero da categoria escolhida: "))
+        if user_input in available_options:
+            category_choosen = user_input
+            break
+        else:
+            print("Escolha uma opção válida")
+
+    return str(category_choosen)
+
+
+'''
+# function start()
+'''
 def start():
-    print("Getting google Trends...")
-    gsubject = get_google_trends()
-    print("Getting Twitter Trends...", end="\n\n")
-    tsubject = get_twitter_trends()
-
-    options = {}
-    options[1] = gsubject[0]['title']
-    options[2] = tsubject[0]['name']
-    options[3] = "Outro"
-
+    
+    logging.info("Asking for a subject...")
     content = {}
-    content['search_term'] = ask_for_a_subject(options)
+    content['youtube_details'] = {}
+    content['search_term'] = ask_for_a_subject()
+    content['youtube_details']['category_id'] = ask_for_a_category()
     content['original_content'] = get_wikipedia_content(content['search_term'], "pt")
-    #video_content['wikipedia_images'] = wikipedia['images'] if 'images' in wikipedia else []
-    if content['original_content'] != '':
+    
+    if content['original_content'] is not None:
         content['cleaned_content'] = clear_text(content['original_content'])
-        
-    # Breaking the text in sentences
-    logging.info("Breaking the main text in sentences...")
 
-    # Saving content on disk
+        # Breaking the text in sentences
+        logging.info("Breaking the main text in sentences...")
+        print("Creating sentences from cleaned text...")
+        content['sentences'] = create_sentences_from_text(content['cleaned_content'])
+        response = True
+    else:
+        response = False
+        raise ValueError("Conteúdo não encontrado")
+    
     save(content)
+    return response
     
 
 
-
-# Para execução sozinha
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'start':
-        start()
-
-'''
-
-    print(gsubject[0]['title'], end="\n\n")
-    print("Here are some insights!", end="\n\n")
-    if "related_news" in gsubject[0]:    
-        print("Notícias relacionadas: ",end="\n\n")
-        for i in gsubject[0]['related_news']:
-            print(i)
-        print("")
-
-    if "description" in gsubject[0]:
-        print("Descrição: ", end="\n\n")
-        for i in gsubject[0]['description'].split(","):
-            print(i.strip())
-        print("")
-'''
-    
+# em caso de execução do arquivo diretamente
+if __name__ == '__main__':
+    start()
