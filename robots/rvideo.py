@@ -9,6 +9,7 @@ from rconfig import\
     CONTENT_PATH,\
     CONTENT_IMAGES_PATH,\
     CONTENT_SOUND_PATH,\
+    CONTENT_DEFAULT_PATH,\
     CREDENTIALS_PATH,\
     VIDEO_INTRODUCTION_TEXT,\
     VIDEO_SCREENSIZE,\
@@ -19,7 +20,8 @@ from rconfig import\
     VIDEO_FRAME_DURATION_DEFAULT,\
     VIDEO_TEXT_KERNING_DEFAULT,\
     VIDEO_CODEC_DEFAULT,\
-    VIDEO_FPS_DEFAULT
+    VIDEO_FPS_DEFAULT,\
+    IMAGE_FORMATTER
 
 
 #import numpy as np
@@ -88,13 +90,17 @@ def prepare_images_downloaded():
             # removing resized images
             os.system("rm -rf {}/*_resized*".format(path))
 
+            # workaround to resolve the problems with grayscale image
+            img = Image.open(filename_composite)
+            rgbimg = Image.new(IMAGE_FORMATTER.get(img.format, 'RGB'), img.size)
+            rgbimg.paste(img)
+            rgbimg.save(filename_composite, format=img.format)
+
+
 
 def compile_video():
     logging.info("Compiling video...")
 
-    formatter = {"PNG": "RGBA", "JPEG": "RGB"}
-    #os.chdir('./')
-    #path = "./content/images"
     path = CONTENT_IMAGES_PATH
     
     # create directory
@@ -130,14 +136,9 @@ def compile_video():
     #for root, folders, files in os.walk('./content/images'):
     for idx, sentence in enumerate(video_content['sentences']):
 
-        filename = "{}/{}_composite.jpg".format(path, idx)
+        f  = "{}/{}_composite.jpg".format(path, idx)
+        filename = f if os.path.exists(f) else CONTENT_DEFAULT_PATH+"/missing_image.jpg"
         
-        # workaround to resolve the problems with grayscale image
-        img = Image.open(filename)
-        rgbimg = Image.new(formatter.get(img.format, 'RGB'), img.size)
-        rgbimg.paste(img)
-        rgbimg.save(filename, format=img.format)
-
         duration = int(len(sentence['text'])/15)
 
         txt_clip = TextClip('{}'.format(sentence['text']),color=color, font=font, kerning = 5, fontsize=font_size, method='caption', size=txt_size).set_pos('center').set_duration(duration)

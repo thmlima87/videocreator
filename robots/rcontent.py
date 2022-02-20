@@ -202,8 +202,6 @@ def create_sentences_from_text(cleaned_content):
         # returning just the list of keywords when relevance > 0.5
         return [d['text'] for d in response['keywords'] if d['relevance'] > 0.5]
     
-    # Loading content from content.json    
-    #content = load()
     # creating sentences
     sentences = nltk.tokenize.sent_tokenize(cleaned_content)[:MAX_SENTENCES_TO_FETCH]
     list_sentences = []

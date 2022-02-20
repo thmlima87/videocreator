@@ -34,7 +34,7 @@ def search_images_on_bing(query, count="1"):
 
 
 
-
+'''
 def fetch_images_links(query, qtde=5, searchType='image', imgSize='XLARGE', start=1):
     
     my_api_key = credentials['gcs_api_key']
@@ -52,7 +52,7 @@ def fetch_images_links(query, qtde=5, searchType='image', imgSize='XLARGE', star
 
     results = google_search_images(query, my_api_key, my_cse_id, num=qtde, searchType=searchType, imgSize=imgSize)
     return results
-
+'''
 
 def fetch_images_from_sentences():
     logging.info("Fetching images from sentences...")
@@ -87,7 +87,7 @@ def download_images():
     for idx_s, sentence in enumerate(video_content['sentences']):
         for idx_i, image in enumerate(sentence['images']):
             if image not in list_img:
-                # if an image dosen't downloaded, try another one
+                # if an image doesn't downloaded, try another one
                 try:
                     print("Trying to download: ", image)
                     image_filename = "{}/{}_original.jpg".format(path,idx_s)

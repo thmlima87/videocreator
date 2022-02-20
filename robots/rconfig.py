@@ -8,10 +8,10 @@ CREDENTIALS_PATH = "./credentials"
 
 # FOR CONTENT
 MAX_SENTENCES_TO_FETCH = 5
-WIKIPEDIA_MAIN_URL = "https://{}.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&exlimit=1&titles={}&explaintext=1&formatversion=2&media=1"
+WIKIPEDIA_MAIN_URL = "https://{}.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&exlimit=1&titles={}&explaintext=1&formatversion=2"
 
 # FOR VIDEO
-VIDEO_INTRODUCTION_TEXT = "Robby\napresenta..."
+VIDEO_INTRODUCTION_TEXT = "Variavel Constante\napresenta..."
 VIDEO_SCREENSIZE = (1920,1080)
 VIDEO_TEXT_COLOR_DEFAULT = 'white'
 VIDEO_TEXT_FONT_DEFAULT = 'helvetica'
@@ -21,6 +21,9 @@ VIDEO_FRAME_DURATION_DEFAULT = 4
 VIDEO_TEXT_KERNING_DEFAULT = 5
 VIDEO_CODEC_DEFAULT = 'mpeg4'
 VIDEO_FPS_DEFAULT = 30
+
+# FOR IMAGES
+IMAGE_FORMATTER = {"PNG": "RGBA", "JPEG": "RGB"}
 
 # FOR YOUTUBE
 YOUTUBE_CATEGORY_LIST = [
