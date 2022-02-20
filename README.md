@@ -2,6 +2,7 @@
 Projeto para criação automática de videos.
 
 Este projeto foi inspirado pelo canal do Filipe Deschamps. Mais precisamente pela série de videos onde ele programou 4 robôs para criar videos para o Youtube:
+
 https://www.youtube.com/watch?v=kjhu1LEmRpY&list=PLMdYygf53DP4YTVeu0JxVnWq01uXrLwHi
 
 Resolvi fazer a minha versão, em Python, com algumas ferramentas alternativas como o as próprias APIs do Wikipedia para download do conteúdo, a lib NLTK para geração das sentenças, o Bing Custom Search para a busca de imagens, o MoviePy para a compilação do video além da implementação de sugestões de conteúdo baseado nas pesquisas diárias do Google e no Trending topics do Twitter.
@@ -111,39 +112,3 @@ rgbimg = Image.new(formatter.get(img.format, 'RGB'), img.size)
 rgbimg.paste(img)
 rgbimg.save(file_name, format=img.format)
 ```
-
-
-### YOUTUBE CATEGORIES LIST
-
-1. Film & Animation
-2. Autos & Vehicles
-10. Music
-15. Pets & Animals
-17. Sports
-18. Short Movies
-19. Travel & Events
-20. Gaming
-21. Videoblogging
-22. People & Blogs
-23. Comedy
-24. Entertainment
-25. News & Politics
-26. Howto & Style
-27. Education
-28. Science & Technology
-29. Nonprofits & Activism
-30. Movies
-31. Anime/Animation
-32. Action/Adventure
-33. Classics
-34. Comedy
-35. Documentary
-36. Drama
-37. Family
-38. Foreign
-39. Horror
-40. Sci-Fi/Fantasy
-41. Thriller
-42. Shorts
-43. Shows
-44. Trailers
