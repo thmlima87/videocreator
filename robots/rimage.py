@@ -32,28 +32,6 @@ def search_images_on_bing(query, count="1"):
     
     return result
 
-
-
-'''
-def fetch_images_links(query, qtde=5, searchType='image', imgSize='XLARGE', start=1):
-    
-    my_api_key = credentials['gcs_api_key']
-    my_cse_id = credentials["gcs_search_engine_id"]
-
-    def google_search_images(query, api_key, cse_id, **kwargs):
-        service = build("customsearch", "v1", developerKey=api_key)
-        res = service.cse().list(q=query, cx=cse_id, **kwargs).execute()
-        if 'items' in res:
-            result = [d['link'] for d in res['items']]
-        else:
-            result = []
-        
-        return result
-
-    results = google_search_images(query, my_api_key, my_cse_id, num=qtde, searchType=searchType, imgSize=imgSize)
-    return results
-'''
-
 def fetch_images_from_sentences():
     logging.info("Fetching images from sentences...")
     print("Fetching images from sentences", end='\n\n')
@@ -72,8 +50,7 @@ def fetch_images_from_sentences():
 
 def download_images():
     logging.info("Downloading images from each sentences")
-    #os.chdir('./')
-    #path = "./content/images"
+    
     path = CONTENT_IMAGES_PATH
 
     # create directory
@@ -101,56 +78,6 @@ def download_images():
     
     video_content['images_used'] = list_img
     rcontent.save(video_content)
-
-
-
-
-def download_wikipedia_images():
-    logging.info("Downloading images from Wikipedia")
-
-    os.chdir('./')
-    path = "./content/images"    
-    # create directory
-    os.makedirs(path, exist_ok=True)
-    
-    video_content = rcontent.load()
-
-    print("Baixando imagens...", end="\n\n")
-
-    # create data struct
-    list_dict_img = []
-        
-    for img in video_content['wikipedia_images']:
-        dict_img = {}
-        dict_img['title'] = img['title']
-        dict_img['type'] = img['type']
-        # creating caption key if exists
-        if 'caption' in img:
-            dict_img['caption'] = img['caption']['text']
-        dict_img['srcset'] = img['srcset']
-        
-        list_dict_img.append(dict_img)
-        # removing duplicates
-        list_img = []
-
-        for idx, src in enumerate(img['srcset']):
-            i = urllib.parse.unquote('https:{}'.format(src['src']))
-            filename = "{}_original".format(idx)
-            try:
-                if src['src'] not in list_img:
-                    image_filename = wget.download(i, "{}/{}".format(path, filename))
-                    #image_filename = wget.download(i)
-                    list_img.append(i)
-            except:
-                continue
-            
-    # saving metadata of images
-    image_json_file = open('{}images.json'.format(path), 'w')
-    json.dump(list_dict_img, image_json_file,  indent=4)
-    image_json_file.close()
-
-    return "Download concluído!!!"
-
 
 
 def start():
