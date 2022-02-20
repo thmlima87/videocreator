@@ -23,47 +23,14 @@ from rconfig import\
     VIDEO_FPS_DEFAULT,\
     IMAGE_FORMATTER
 
-
-#import numpy as np
-
 from moviepy.editor import *
 from moviepy.video.tools.segmenting import findObjects
 
 
 
-'''
-def prepare_images_downloaded():
-    logging.info("Preparing images downloaded to compile the video")
-
-    os.chdir('./')
-    path = "./content/images"
-    
-    # create directory
-    video_content = rcontent.load()
-    
-    for idx, sentence in enumerate(video_content['sentences']):
-        
-        filename = "content/images/{}_sentence.png".format(idx)
-        
-        for root, folders, files in os.walk('.'):
-            for f in files:
-                if f.startswith(str("{}_".format(idx))):
-                    print("{} = {}".format(idx, f))
-                    #filename = 
-                    #command = "convert -size 1920x1080 -font helvetica -pointsize 66 -border 30x30 -background 'transparent' -fill white -gravity center caption:'{}' {}".format(sentence['text'], filename)
-                    #command = "convert -font helvetica -fill white -pointsize 36 -draw 'text 10,50 \"{}\"' {} {}".format(sentence['text'], f)
-        
-        #os.system(command)
-        #print(texto)
-'''     
-
-
-
 def prepare_images_downloaded():
     logging.info("Preparing images downloaded to compile the video")
     
-    #os.chdir('./')
-    #path = "./content/images"
     path = CONTENT_IMAGES_PATH
     # removing existing composite images
     os.system("rm -rf {}/*_composite*".format(path))
@@ -133,7 +100,6 @@ def compile_video():
     list_video_clips.append(cvc2)
     list_video_clips.append(cvc3)
 
-    #for root, folders, files in os.walk('./content/images'):
     for idx, sentence in enumerate(video_content['sentences']):
 
         f  = "{}/{}_composite.jpg".format(path, idx)
@@ -147,7 +113,7 @@ def compile_video():
         color_clip = color_clip.set_opacity(.6)
         
         clip_to_overlay = CompositeVideoClip([color_clip, txt_clip], size=screensize).set_position('center')
-        #cvc = CompositeVideoClip([txt_clip,img_clip], size=screensize)
+        
         if os.path.isfile(filename):
             img_clip = ImageClip(filename).set_duration(duration)
             cvc = CompositeVideoClip([img_clip,clip_to_overlay], size=screensize).set_duration(duration)
@@ -160,8 +126,6 @@ def compile_video():
     txt_fechamento = TextClip('Obrigado por assistir!!!\nd(~.~)b',color=color, font=font, kerning = 5, fontsize=100, method='caption', size=screensize).set_pos('center').set_duration(4)
     list_video_clips.append(txt_fechamento)
 
-    #final_clip = concatenate_videoclips(clips)
-    #final_clip.write_videofile('./content/coolTextEffects.avi',fps=25,codec='mpeg4')
     final_clip = concatenate_videoclips(list_video_clips)
 
     audio = afx.audio_loop(music, duration=final_clip.duration)

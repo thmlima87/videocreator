@@ -251,11 +251,6 @@ def  create_thumbnail(video_content):
     os.system(command_thumb_standard)
     os.system(command_thumb_maxres)
     
-    #for root, folders, files in os.walk(CONTENT_IMAGES_PATH):
-        # using list comprehension to return just composite files
-    #    image = sorted([f for f in files if "composite" in f])[0]
-        
-
 
 def set_thumbnail(youtube, video_id):
     print('Setting the thumbnail: {} for video: {}'.format(CONTENT_IMAGES_PATH + "/thumb_maxres.png", video_id))

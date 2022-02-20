@@ -1,5 +1,13 @@
 # Video Creator
-Projeto para criação automática de videos
+Projeto para criação automática de videos.
+
+Este projeto foi inspirado pelo canal do Filipe Deschamps. Mais precisamente pela série de videos onde ele programou 4 robôs para criar videos para o Youtube:
+https://www.youtube.com/watch?v=kjhu1LEmRpY&list=PLMdYygf53DP4YTVeu0JxVnWq01uXrLwHi
+
+Resolvi fazer a minha versão, em Python, com algumas ferramentas alternativas como o as próprias APIs do Wikipedia para download do conteúdo, a lib NLTK para geração das sentenças, o Bing Custom Search para a busca de imagens, o MoviePy para a compilação do video além da implementação de sugestões de conteúdo baseado nas pesquisas diárias do Google e no Trending topics do Twitter.
+
+Abaixo algumas anotações que fui fazendo no decorrer do projeto.
+
 
 ### Links úteis
 1. https://google-api-client-libraries.appspot.com/documentation/customsearch/v1/python/latest/customsearch_v1.cse.html
@@ -17,6 +25,7 @@ Projeto para criação automática de videos
 13. https://www.mediawiki.org/w/api.php?action=help&modules=query
 14. https://www.imagemagick.org/script/index.php
 15. http://sergioaraujo.pbworks.com/w/page/15863922/imagemagick
+
 
 ### Image Magick
 #### Installing on Ubuntu
@@ -81,14 +90,6 @@ https://zulko.github.io/moviepy/gallery.html
 4) Criar uma instancia do bing custom search em: https://www.customsearch.ai/applications
 
 
-### Little tricks
-Depois de importar a lib nltk, será necessário executar a linha debaixo:
-
-```python
-import nltk
-nltk.download('punkt')
-```
-
 ## INFORMAÇÕES ÚTEIS
 
 ### Problema com imagens em preto e branco
@@ -146,12 +147,3 @@ rgbimg.save(file_name, format=img.format)
 42. Shorts
 43. Shows
 44. Trailers
-
-
-
-
-
-# PRÓXIMOS PASSOS
-1) Add logs e diminuir prints
-2) Verificar tamanho das imagens baixadas, e converter todas as necessárias para o tamanho padrão HD
-3) Implementar template para construção do video

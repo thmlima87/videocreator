@@ -12,23 +12,6 @@ import ryoutube
 import logging # log
 
 
-# abrindo conexão
-#conn = sdb.connect()
-# Salvando google trends
-#print(sdb.saveMany(conn, gsubject, 'googleTrends'), end="\n\n")
-
-# Salvando twitter trends
-#print(sdb.saveMany(conn, tsubject, 'twitterTrends'), end="\n\n")
-
-#print(fs.formatMessageFromGoogleToTelegram(gsubject))
-#print(fs.formatMessageFromTwitterToTelegram(tsubject))
-
-#print(watson.get_keywords_from_sentence(sentences[0]))
-
-
-
-
-
 def main():
     try:
         # Iniciando o robo de conteúdo
