@@ -7,7 +7,13 @@ https://www.youtube.com/watch?v=kjhu1LEmRpY&list=PLMdYygf53DP4YTVeu0JxVnWq01uXrL
 
 Resolvi fazer a minha versão, em Python, com algumas ferramentas alternativas como o as próprias APIs do Wikipedia para download do conteúdo, a lib NLTK para geração das sentenças, o Bing Custom Search para a busca de imagens, o MoviePy para a compilação do video além da implementação de sugestões de conteúdo baseado nas pesquisas diárias do Google e no Trending topics do Twitter.
 
-Abaixo algumas anotações que fui fazendo no decorrer do projeto.
+### Onde encontro mais detalhes?
+Afim de fixar e compartilhar o conteúdo aprendido, resolvi criar uma série de posts explicando todo o processo de criação desse projeto, segue o link:
+
+https://variavelconstante.com.br/2022/03/03/python-na-pratica-gerando-videos-para-o-youtube-de-forma-automatica/
+
+
+## Abaixo algumas anotações que fui fazendo no decorrer do projeto.
 
 
 ### Links úteis
